@@ -1,0 +1,142 @@
+---
+title: "Free-to-Paid Conversion Analysis"
+author: "Guy Mor"
+date: "2025-05-04"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+query <- readLines("queries/engagement_metrics.sql")
+```
+
+```{r}
+cat(query, sep = "\n")
+```
+
+```{r}
+result <- data.frame(
+  conversion_rate = 11.29,
+  av_reg_watch = 3.42,
+  av_watch_purch = 26.25
+)
+
+knitr::kable(result, caption = "Summary of Student Engagement Metrics")
+```
+
+## Interpretation
+
+- **Conversion Rate (11.29%)**:   
+Slightly more than 1 in 10 students who engaged with a lecture chose to purchase a subscription. 
+
+- **Average Registration-to-Engagement Time (3.42 days)**:   
+Students typically start watching lectures within just a few days after signing up, which may indicate that the platform is easy to use and effectively encourages new users to get started quickly.
+
+- **Average Engagement-to-Purchase Time (26.25 days)**:   
+On average, students wait nearly a month after watching their first lecture before subscribing.
+This may reflect hesitation or a tendency to wait for special deals before making a purchase.
+
+```{r}
+df <- read.csv("data/time_differences.csv")
+head(df, 5)
+```
+
+```{r}
+get_mode <- function(v) {
+  v <- na.omit(v)
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+```
+
+```{r}
+df$date_diff_reg_watch <- as.numeric(df$date_diff_reg_watch)
+df$date_diff_watch_purch <- suppressWarnings(as.numeric(df$date_diff_watch_purch))
+
+
+# Registration to Watch
+mean_reg_watch   <- mean(df$date_diff_reg_watch, na.rm = TRUE)
+median_reg_watch <- median(df$date_diff_reg_watch, na.rm = TRUE)
+mode_reg_watch   <- get_mode(df$date_diff_reg_watch)
+
+# Watch to Purchase
+mean_watch_purch   <- mean(df$date_diff_watch_purch, na.rm = TRUE)
+median_watch_purch <- median(df$date_diff_watch_purch, na.rm = TRUE)
+mode_watch_purch   <- get_mode(df$date_diff_watch_purch)
+
+cat("Registration → Watch:\n")
+cat("Mean:   ", round(mean_reg_watch, 2), "\n")
+cat("Median: ", median_reg_watch, "\n")
+cat("Mode:   ", mode_reg_watch, "\n\n")
+
+cat("Watch → Purchase:\n")
+cat("Mean:   ", round(mean_watch_purch, 2), "\n")
+cat("Median: ", median_watch_purch, "\n")
+cat("Mode:   ", mode_watch_purch, "\n")
+```
+
+
+## Interpretation of Distribution Metrics
+
+- **Registration → Watch**  
+The mean (3.42 days), median (0 days), and mode (0 days) are all relatively close, suggesting that most users begin engaging with the platform shortly after registering. This indicates a **swift onboarding process** and likely reflects an intuitive and accessible user experience that encourages immediate engagement.
+
+- **Watch → Purchase**  
+Although the **median (1 day)** and **mode (0 days)** imply that a majority of users who convert do so shortly after watching their first lecture, the **mean (26.25 days)** is considerably higher. This discrepancy suggests the presence of **outliers**—users who delayed their subscription—pulling the average upward. These delayed conversions may indicate **hesitancy** or a tendency to wait for **special offers or discounts** before purchasing.
+
+
+```{r}
+hist(
+  df$date_diff_reg_watch,
+  breaks = 30,          
+  col = "skyblue",              
+  main = "Registration to Watch",
+  xlab = "Days",
+  ylab = "Number of Students"
+)
+```
+
+```{r}
+hist(
+  df$date_diff_watch_purch[!is.na(df$date_diff_watch_purch)],
+  breaks = 30,
+  col = "lightgreen",
+  main = "Watch to Purchase",
+  xlab = "Days",
+  ylab = "Number of Students"
+)
+```
+
+## Distribution Insights
+
+Both distributions show that most students take action shortly after the previous step.  
+The **Watch → Purchase** distribution has a slightly longer right tail, which may suggest that some students wait before purchasing — possibly due to financial considerations or promotional offers.  
+However, the difference between the two distributions is not dramatic, indicating a relatively similar behavioral pattern across both transitions.
+
+## Conclusion
+
+Most users who convert do so quickly after watching a lecture, as shown by the low median and mode.  
+However, the higher mean suggests a smaller group delays their purchase, highlighting an opportunity to target these users with tailored follow-up or offers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
